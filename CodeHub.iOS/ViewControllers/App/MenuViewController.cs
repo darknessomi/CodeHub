@@ -77,8 +77,10 @@ namespace CodeHub.iOS.ViewControllers.App
             {
                 _profileButton.Text = string.IsNullOrEmpty(x.Name) ? x.Username : x.Name;
                 _profileButton.Subtitle = x.Email;
-                _profileButton.ImageUri = x.AvatarUrl;
             });
+
+            this.WhenAnyValue(x => x.ViewModel.Avatar)
+                .Subscribe(x => _profileButton.SetImage(x.ToUri(64), Images.UnknownUser));
 
             this.WhenAnyValue(x => x.ViewModel.Notifications)
                 .Subscribe(x => _notifications.NotificationNumber = x);
@@ -102,9 +104,9 @@ namespace CodeHub.iOS.ViewControllers.App
 
             //Add some nice looking colors and effects
             TableView.TableFooterView = new UIView(new CGRect(0, 0, View.Bounds.Width, 0));
-            TableView.BackgroundColor = Themes.Theme.Current.MenuBackgroundColor;
+            TableView.BackgroundColor = Theme.MenuBackgroundColor;
             TableView.ScrollsToTop = false;
-            TableView.SeparatorColor = Themes.Theme.Current.PrimaryNavigationBarColor;
+            TableView.SeparatorColor = Theme.PrimaryNavigationBarColor;
             TableView.Source = _dialogSource = new MenuTableViewSource(this);
             TableView.RowHeight = 54f;
 
@@ -192,7 +194,7 @@ namespace CodeHub.iOS.ViewControllers.App
 
 			public PinnedRepoElement(PinnedRepository pinnedRepo, System.Windows.Input.ICommand command)
                 : base(pinnedRepo.Name, 
-                    () => command.Execute(new RepositoryIdentifier { Owner = pinnedRepo.Owner, Name = pinnedRepo.Name }), 
+                    () => command.Execute(new RepositoryIdentifier(pinnedRepo.Owner, pinnedRepo.Name)), 
                     Octicon.Repo.ToImage(),
                     GetActualImage(pinnedRepo))
 			{

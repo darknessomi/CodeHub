@@ -56,7 +56,6 @@ namespace CodeHub.iOS
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Flurry.Analytics.Portable.AnalyticsApi.LogError(e);
                 throw;
             }
         }
@@ -96,18 +95,6 @@ namespace CodeHub.iOS
             Locator.CurrentMutable.InitializeServices();
             Bootstrap.Init();
 
-            // Enable flurry analytics
-            if (ObjCRuntime.Runtime.Arch != ObjCRuntime.Arch.SIMULATOR)
-            {
-                Flurry.Analytics.FlurryAgent.SetCrashReportingEnabled(true);
-                Flurry.Analytics.FlurryAgent.StartSession("FXD7V6BGG5KHWZN3FFBX");
-            }
-            else
-            {
-                this.Log().Debug("Simulator detected, disabling analytics");
-                Locator.Current.GetService<IAnalyticsService>().Enabled = false;
-            }
-
             _settingsChangedObserver = NSNotificationCenter.DefaultCenter.AddObserver((NSString)"NSUserDefaultsDidChangeNotification", DefaultsChanged); 
 
             System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
@@ -119,7 +106,7 @@ namespace CodeHub.iOS
             var defaultValueService = Locator.Current.GetService<IDefaultValueService>();
             viewModelViews.RegisterViewModels(typeof(SettingsViewController).Assembly);
 
-            Themes.Theme.Load("Default");
+            Theme.Setup();
 
             try
             {
@@ -292,29 +279,6 @@ namespace CodeHub.iOS
         public override bool OpenUrl(UIApplication application, NSUrl url, string sourceApplication, NSObject annotation)
         {
             return true;
-//            var uri = new Uri(url.AbsoluteString);
-//
-//            if (uri.Host == "x-callback-url")
-//            {
-//                //XCallbackProvider.Handle(new XCallbackQuery(url.AbsoluteString));
-//                return true;
-//            }
-//            else
-//            {
-//                var path = url.AbsoluteString.Replace("codehub://", "");
-//                var queryMarker = path.IndexOf("?", StringComparison.Ordinal);
-//                if (queryMarker > 0)
-//                    path = path.Substring(0, queryMarker);
-//
-//                if (!path.EndsWith("/", StringComparison.Ordinal))
-//                    path += "/";
-//                var first = path.Substring(0, path.IndexOf("/", StringComparison.Ordinal));
-//                var firstIsDomain = first.Contains(".");
-//
-//                var viewModel = Locator.Current.GetService<IUrlRouterService>().Handle(path);
-//                //TODO: Show the ViewModel
-//                return true;
-//            }
         }
     }
 }

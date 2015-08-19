@@ -59,10 +59,9 @@ namespace CodeHub.iOS.ViewControllers.Gists
                 .IsNotNull()
                 .SubscribeSafe(x =>
                 {
-                    var publicGist = x.Public.HasValue && x.Public.Value;
                     var revisionCount = x.History == null ? 0 : x.History.Count;
 
-                    _splitRow1.Button1.Text = publicGist ? "Public" : "Private";
+                    _splitRow1.Button1.Text = x.Public ? "Public" : "Private";
                     _splitRow1.Button2.Text = revisionCount + " Revisions";
 
                     var delta = DateTimeOffset.UtcNow.UtcDateTime - x.UpdatedAt.UtcDateTime;
@@ -120,13 +119,11 @@ namespace CodeHub.iOS.ViewControllers.Gists
                 .Select(x => x.Owner != null ? () => ViewModel.GoToOwnerCommand.ExecuteIfCan() : (Action)null)
                 .SubscribeSafe(x => _ownerElement.Tapped = x);
 
-            updatedGistObservable.SubscribeSafe(x =>
-            {
+            this.WhenAnyValue(x => x.ViewModel.Avatar)
+                .Subscribe(x => HeaderView.SetImage(x?.ToUri(64), Images.LoginUserUnknown));
+
+            updatedGistObservable.SubscribeSafe(x => {
                 HeaderView.SubText = x.Description;
-                if (x.Owner != null) 
-                    HeaderView.ImageUri = x.Owner.AvatarUrl;
-                else
-                    HeaderView.Image = Images.LoginUserUnknown;
                 RefreshHeaderView();
             });
 

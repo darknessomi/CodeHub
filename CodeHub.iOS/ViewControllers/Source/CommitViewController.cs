@@ -4,13 +4,13 @@ using System.Linq;
 using CodeHub.Core.ViewModels.Changesets;
 using ReactiveUI;
 using System.Reactive.Linq;
-using GitHubSharp.Models;
 using System.Reactive;
 using System.Collections.Generic;
 using CodeHub.WebViews;
 using Humanizer;
 using CodeHub.iOS.DialogElements;
 using CodeHub.iOS.Views;
+using Octokit;
 
 namespace CodeHub.iOS.ViewControllers.Source
 {
@@ -125,10 +125,12 @@ namespace CodeHub.iOS.ViewControllers.Source
                     RefreshHeaderView();
                 });
 
+            this.WhenAnyValue(x => x.ViewModel.Avatar)
+                .Subscribe(x => HeaderView.SetImage(x?.ToUri(128), Images.LoginUserUnknown));
+
             this.WhenAnyValue(x => x.ViewModel.Commit)
                 .IsNotNull()
                 .Subscribe(x => {
-                    HeaderView.ImageUri = x.GenerateGravatarUrl();
                     HeaderView.SubText = "Commited " + x.Commit.Committer.Date.LocalDateTime.Humanize();
                     RefreshHeaderView();
                 });

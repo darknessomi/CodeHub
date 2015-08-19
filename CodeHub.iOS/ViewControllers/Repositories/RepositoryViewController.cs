@@ -1,7 +1,6 @@
 using System;
 using System.Reactive.Linq;
 using CodeHub.Core.ViewModels.Repositories;
-using GitHubSharp.Models;
 using UIKit;
 using ReactiveUI;
 using CodeHub.iOS.DialogElements;
@@ -70,7 +69,7 @@ namespace CodeHub.iOS.ViewControllers.Repositories
                     {
                         _splitElements[0].Button1.Text = x.Private ? "Private" : "Public";
                         _splitElements[0].Button2.Text = x.Language ?? "N/A";
-                        _splitElements[1].Button1.Text = x.OpenIssues + (x.OpenIssues == 1 ? " Issue" : " Issues");
+                        _splitElements[1].Button1.Text = x.OpenIssuesCount + (x.OpenIssuesCount == 1 ? " Issue" : " Issues");
                     });
 
             Appeared.Take(1)
@@ -106,13 +105,8 @@ namespace CodeHub.iOS.ViewControllers.Repositories
                     RefreshHeaderView();
                 });
 
-            this.WhenAnyValue(x => x.ViewModel.Repository)
-                .IsNotNull()
-                .Subscribe(x =>
-                {
-                    HeaderView.ImageUri = x.Owner.AvatarUrl;
-                    RefreshHeaderView();
-                });
+            this.WhenAnyValue(x => x.ViewModel.Avatar)
+                .Subscribe(x => HeaderView.SetImage(x?.ToUri(128), Images.LoginUserUnknown));
 
             this.WhenAnyValue(x => x.ViewModel.Repository)
                 .IsNotNull()

@@ -40,7 +40,7 @@ namespace CodeHub.Core.ViewModels.Activity
             SessionService = sessionService;
             Title = "Events";
 
-            var events = new ReactiveList<EventModel>();
+            var events = new ReactiveList<EventModel>(resetChangeThreshold: 1.0);
             Events = events.CreateDerivedCollection(CreateEventTextBlocks);
             ReportRepository = true;
 
@@ -67,8 +67,8 @@ namespace CodeHub.Core.ViewModels.Activity
         private void GoToGist(EventModel.GistEvent gist)
         {
             var vm = this.CreateViewModel<GistViewModel>();
-            vm.Id = gist.Gist.Id;
-            vm.Gist = gist.Gist;
+            vm.Init(gist.Gist.Id);
+            //vm.Gist = gist.Gist;
             NavigateTo(vm);
         }
        

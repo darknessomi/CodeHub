@@ -6,7 +6,6 @@ using CodeHub.Core.Services;
 using CodeHub.Core.ViewModels.Issues;
 using CodeHub.Core.ViewModels.PullRequests;
 using CodeHub.Core.ViewModels.Source;
-using GitHubSharp.Models;
 using CodeHub.Core.ViewModels.Users;
 using CodeHub.Core.ViewModels.Changesets;
 using ReactiveUI;
@@ -19,6 +18,7 @@ using CodeHub.Core.ViewModels.Contents;
 using CodeHub.Core.Factories;
 using CodeHub.Core.ViewModels.Activity;
 using CodeHub.Core.Utilities;
+using Octokit;
 
 namespace CodeHub.Core.ViewModels.Repositories
 {
@@ -28,9 +28,9 @@ namespace CodeHub.Core.ViewModels.Repositories
         private readonly IAccountsRepository _accountsService;
         private bool? _starred;
         private bool? _watched;
-        private RepositoryModel _repository;
-        private ContentModel _readme;
-        private List<BranchModel> _branches;
+        private Repository _repository;
+        private Readme _readme;
+        private IReadOnlyList<Branch> _branches;
         private int? _contributors;
 
         public string RepositoryOwner { get; private set; }
@@ -60,30 +60,23 @@ namespace CodeHub.Core.ViewModels.Repositories
             private set { this.RaiseAndSetIfChanged(ref _contributors, value); }
         }
 
-        public RepositoryModel Repository
+        public Repository Repository
         {
             get { return _repository; }
             private set { this.RaiseAndSetIfChanged(ref _repository, value); }
         }
 
-        public ContentModel Readme
+        public Readme Readme
         {
             get { return _readme; }
             private set { this.RaiseAndSetIfChanged(ref _readme, value); }
         }
 
-        public List<BranchModel> Branches
+        public IReadOnlyList<Branch> Branches
         {
             get { return _branches; }
             private set { this.RaiseAndSetIfChanged(ref _branches, value); }
         }
-
-//        private int? _languages;
-//        public int? Languages
-//        {
-//            get { return _languages; }
-//            private set { this.RaiseAndSetIfChanged(ref _languages, value); }
-//        }
 
         private int? _releases;
         public int? Releases
@@ -110,6 +103,12 @@ namespace CodeHub.Core.ViewModels.Repositories
         public string Description
         {
             get { return _description.Value; }
+        }
+
+        private readonly ObservableAsPropertyHelper<GitHubAvatar> _avatar;
+        public GitHubAvatar Avatar
+        {
+            get { return _avatar.Value; }
         }
 
         public IReactiveCommand<Unit> LoadCommand { get; private set; }
@@ -174,10 +173,14 @@ namespace CodeHub.Core.ViewModels.Repositories
 
             this.WhenAnyValue(x => x.RepositoryName).Subscribe(x => Title = x);
 
+            this.WhenAnyValue(x => x.Repository.Owner.AvatarUrl)
+                .Select(x => new GitHubAvatar(x))
+                .ToProperty(this, x => x.Avatar, out _avatar);
+
             this.WhenAnyValue(x => x.Repository).Subscribe(x => 
             {
-                Stargazers = x != null ? (int?)x.StargazersCount : null;
-                Watchers = x != null ? (int?)x.SubscribersCount : null;
+                Stargazers = (int?)x?.StargazersCount;
+                Watchers = (int?)x?.SubscribersCount;
             });
 
             this.WhenAnyValue(x => x.Repository.Description)
@@ -192,7 +195,7 @@ namespace CodeHub.Core.ViewModels.Repositories
 
             GoToOwnerCommand = ReactiveCommand.Create(this.WhenAnyValue(x => x.Repository).Select(x => x != null));
             GoToOwnerCommand.Select(_ => Repository.Owner).Subscribe(x => {
-                if (string.Equals(x.Type, "organization", StringComparison.OrdinalIgnoreCase))
+                if (AccountType.Organization.Equals(x.Type))
                 {
                     var vm = this.CreateViewModel<OrganizationViewModel>();
                     vm.Init(RepositoryOwner);
@@ -297,8 +300,7 @@ namespace CodeHub.Core.ViewModels.Repositories
             GoToContributors.Subscribe(_ =>
             {
                 var vm = this.CreateViewModel<RepositoryContributorsViewModel>();
-                vm.RepositoryOwner = RepositoryOwner;
-                vm.RepositoryName = RepositoryName;
+                vm.Init(RepositoryOwner, RepositoryName);
                 NavigateTo(vm);
             });
 
@@ -349,13 +351,13 @@ namespace CodeHub.Core.ViewModels.Repositories
 
             LoadCommand = ReactiveCommand.CreateAsyncTask(async _ => {
 
-                var t1 = applicationService.Client.ExecuteAsync(ApplicationService.Client.Users[RepositoryOwner].Repositories[RepositoryName].Get());
+                var t1 = applicationService.GitHubClient.Repository.Get(RepositoryOwner, RepositoryName);
 
-                applicationService.Client.ExecuteAsync(applicationService.Client.Users[RepositoryOwner].Repositories[RepositoryName].GetReadme())
-                    .ToBackground(x => Readme = x.Data);
+                applicationService.GitHubClient.Repository.Content.GetReadme(RepositoryOwner, RepositoryName)
+                    .ToBackground(x => Readme = x);
 
-                applicationService.Client.ExecuteAsync(applicationService.Client.Users[RepositoryOwner].Repositories[RepositoryName].GetBranches())
-                    .ToBackground(x => Branches = x.Data);
+                applicationService.GitHubClient.Repository.GetAllBranches(RepositoryOwner, RepositoryName)
+                    .ToBackground(x => Branches = x);
 
                 applicationService.GitHubClient.Activity.Watching.CheckWatched(RepositoryOwner, RepositoryName)
                     .ToBackground(x => IsWatched = x);
@@ -372,7 +374,7 @@ namespace CodeHub.Core.ViewModels.Repositories
                 applicationService.Client.ExecuteAsync(applicationService.Client.Users[RepositoryOwner].Repositories[RepositoryName].GetReleases())
                     .ToBackground(x => Releases = x.Data.Count);
 
-                Repository = (await t1).Data;
+                Repository = await t1;
             });
         }
 
@@ -428,7 +430,7 @@ namespace CodeHub.Core.ViewModels.Repositories
             IsStarred = !IsStarred.Value;
         }
 
-        public RepositoryViewModel Init(string repositoryOwner, string repositoryName, RepositoryModel repository = null)
+        public RepositoryViewModel Init(string repositoryOwner, string repositoryName, Octokit.Repository repository = null)
         {
             RepositoryOwner = repositoryOwner;
             RepositoryName = repositoryName;

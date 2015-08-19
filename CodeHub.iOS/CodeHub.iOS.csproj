@@ -102,7 +102,6 @@
     <MtouchI18n>
     </MtouchI18n>
     <MtouchArch>ARMv7, ARM64</MtouchArch>
-    <MtouchUseThumb>true</MtouchUseThumb>
     <CodesignProvision>Automatic:AdHoc</CodesignProvision>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <DefineConstants>DEBUG</DefineConstants>
@@ -184,7 +183,6 @@
     <Compile Include="Cells\CommitedFileTableViewCell.cs" />
     <Compile Include="TableViewSources\CommitedFilesTableViewSource.cs" />
     <Compile Include="Services\Registrations.cs" />
-    <Compile Include="Themes\Theme.cs" />
     <Compile Include="TableViewSources\ReactiveTableViewSource.cs" />
     <Compile Include="Extensions\UIImageViewExtensions.cs" />
     <Compile Include="Extensions\UIApplicationDelegateExtensions.cs" />
@@ -197,8 +195,6 @@
     <Compile Include="Factories\AlertDialogFactory.cs" />
     <Compile Include="Factories\MediaPickerFactory.cs" />
     <Compile Include="Factories\Registrations.cs" />
-    <Compile Include="XCallback\XCallbackQuery.cs" />
-    <Compile Include="XCallback\XCallbackProvider.cs" />
     <Compile Include="Images\UIImageHelper.cs" />
     <Compile Include="Services\DefaultValueService.cs" />
     <Compile Include="Services\EnvironmentalService.cs" />
@@ -206,7 +202,6 @@
     <Compile Include="Services\InAppPurchaseService.cs" />
     <Compile Include="Services\NetworkActivityService.cs" />
     <Compile Include="Services\ServiceConstructor.cs" />
-    <Compile Include="DialogElements\CustomElement.cs" />
     <Compile Include="DialogElements\Element.cs" />
     <Compile Include="DialogElements\EntryElement.cs" />
     <Compile Include="DialogElements\IElementSizing.cs" />
@@ -218,7 +213,6 @@
     <Compile Include="DialogElements\TrueFalseElement.cs" />
     <Compile Include="TableViewSources\DialogTableViewSource.cs" />
     <Compile Include="Utilities\ObservableSearchDelegate.cs" />
-    <Compile Include="DialogElements\ChangesetElement.cs" />
     <Compile Include="DialogElements\DummyInputElement.cs" />
     <Compile Include="DialogElements\ExpandingInputElement.cs" />
     <Compile Include="DialogElements\HtmlElement.cs" />
@@ -246,8 +240,6 @@
     <Compile Include="Services\InAppPurchaseNetworkDecorator.cs" />
     <InterfaceDefinition Include="Launch.storyboard" />
     <Compile Include="Extensions\UIFontExtensions.cs" />
-    <Compile Include="AkavacheSqliteLinkerOverride.cs" />
-    <Compile Include="DialogElements\RateElement.cs" />
     <Compile Include="Utilities\EasyLayout.cs" />
     <Compile Include="Data\Account.cs" />
     <Compile Include="Data\AccountPinnedRepositories.cs" />
@@ -420,7 +412,6 @@
     <InterfaceDefinition Include="ViewControllers\Walkthrough\WelcomeViewController.xib" />
     <Compile Include="Views\ProgressBarView.cs" />
     <Compile Include="Views\MilestoneView.cs" />
-    <Compile Include="Views\AddRemoveView.cs" />
     <Compile Include="Views\MenuSectionView.cs" />
     <Compile Include="Views\TableViewSectionView.cs" />
     <Compile Include="Views\TrendingTitleButton.cs" />
@@ -440,6 +431,7 @@
     <Compile Include="ViewControllers\Accounts\NewAccountViewController.cs" />
     <Compile Include="ViewControllers\App\EnterpriseSupportViewController.cs" />
     <Compile Include="Views\LoadingIndicatorView.cs" />
+    <Compile Include="LinkerOverride.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -461,9 +453,6 @@
     </Reference>
     <Reference Include="System.Web.Services" />
     <Reference Include="Xamarin.iOS" />
-    <Reference Include="SDWebImage">
-      <HintPath>lib\SDWebImage.dll</HintPath>
-    </Reference>
     <Reference Include="BTProgressHUD">
       <HintPath>lib\BTProgressHUD.dll</HintPath>
     </Reference>
@@ -489,23 +478,11 @@
     <Reference Include="Akavache.Sqlite3">
       <HintPath>..\packages\akavache.sqlite3.4.1.1\lib\Portable-Net45+Win8+WP8+Wpa81\Akavache.Sqlite3.dll</HintPath>
     </Reference>
-    <Reference Include="Fusillade">
-      <HintPath>..\packages\fusillade.0.6.0\lib\Portable-net45+win+wpa81+wp80\Fusillade.dll</HintPath>
-    </Reference>
-    <Reference Include="Punchclock">
-      <HintPath>..\packages\Punchclock.1.2.0\lib\Portable-net45+win+wpa81+wp80\Punchclock.dll</HintPath>
-    </Reference>
-    <Reference Include="Flurry.Analytics.Portable">
-      <HintPath>..\packages\Flurry.Analytics.Portable.1.2.0\lib\XamariniOS10\Flurry.Analytics.Portable.dll</HintPath>
-    </Reference>
     <Reference Include="ReactiveUI">
       <HintPath>..\packages\reactiveui-core.6.5.0\lib\Xamarin.iOS10\ReactiveUI.dll</HintPath>
     </Reference>
     <Reference Include="ModernHttpClient">
       <HintPath>..\packages\modernhttpclient.2.4.2\lib\Xamarin.iOS10\ModernHttpClient.dll</HintPath>
-    </Reference>
-    <Reference Include="Flurry.Analytics.iOS">
-      <HintPath>..\packages\Flurry.Analytics.1.2.1\lib\Xamarin.iOS10\Flurry.Analytics.iOS.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
@@ -521,6 +498,9 @@
     </Reference>
     <Reference Include="CommonMark">
       <HintPath>..\packages\CommonMark.NET.0.9.1\lib\portable-net40+sl50+wp80+win+wpa81+MonoAndroid10+MonoTouch10\CommonMark.dll</HintPath>
+    </Reference>
+    <Reference Include="SDWebImage">
+      <HintPath>..\Components\sdwebimage-3.7.1.4\lib\ios-unified\SDWebImage.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -577,12 +557,12 @@
     </BundleResource>
     <BundleResource Include="Settings.bundle\Root.plist" />
     <BundleResource Include="Settings.bundle\Acknowledgements.plist" />
-    <BundleResource Include="Themes\InvertedDefault.json" />
     <BundleResource Include="Images\forward-chevron.png" />
-    <BundleResource Include="Images\forward-chevron%402x.png" />
+    <BundleResource Include="Images\forward-chevron%402x.png">
+      <DependentUpon>forward-chevron.png</DependentUpon>
+    </BundleResource>
     <BundleResource Include="Images\back-chevron.png" />
     <BundleResource Include="Images\back-chevron%402x.png" />
-    <BundleResource Include="Themes\Default.json" />
     <BundleResource Include="..\CodeHub\WebResources\styles\brown_papersq.png">
       <Link>WebResources\styles\brown_papersq.png</Link>
     </BundleResource>
@@ -766,11 +746,17 @@
       <DependentUpon>search.png</DependentUpon>
     </BundleResource>
     <BundleResource Include="Images\sort.png" />
-    <BundleResource Include="Images\sort%402x.png" />
+    <BundleResource Include="Images\sort%402x.png">
+      <DependentUpon>sort.png</DependentUpon>
+    </BundleResource>
     <BundleResource Include="Images\filter-filled.png" />
-    <BundleResource Include="Images\filter-filled%402x.png" />
+    <BundleResource Include="Images\filter-filled%402x.png">
+      <DependentUpon>filter-filled.png</DependentUpon>
+    </BundleResource>
     <BundleResource Include="Images\filter.png" />
-    <BundleResource Include="Images\filter%402x.png" />
+    <BundleResource Include="Images\filter%402x.png">
+      <DependentUpon>filter.png</DependentUpon>
+    </BundleResource>
     <BundleResource Include="Briefcase.png" />
     <BundleResource Include="CodeHubRound.png" />
     <BundleResource Include="Heart.png" />
@@ -778,6 +764,10 @@
     <BundleResource Include="Feedback.png" />
     <BundleResource Include="Images\enterprise-mascot.png" />
     <BundleResource Include="Images\dotcom-mascot.png" />
+    <BundleResource Include="Images\unknown_user.png">
+      <DependentUpon>unknown_user%402x.png</DependentUpon>
+    </BundleResource>
+    <BundleResource Include="Images\unknown_user%402x.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <Import Project="..\packages\SQLitePCL.raw_basic.0.8.1\build\Xamarin.iOS10\SQLitePCL.raw_basic.targets" Condition="Exists('..\packages\SQLitePCL.raw_basic.0.8.1\build\Xamarin.iOS10\SQLitePCL.raw_basic.targets')" />
@@ -788,10 +778,8 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
-    <Folder Include="Themes\" />
     <Folder Include="Extensions\" />
     <Folder Include="Factories\" />
-    <Folder Include="XCallback\" />
     <Folder Include="DialogElements\" />
     <Folder Include="Utilities\" />
     <Folder Include="WebResources\" />
@@ -813,5 +801,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ViewControllers\Settings\SyntaxHighlightExample" />
+  </ItemGroup>
+  <ItemGroup>
+    <XamarinComponentReference Include="sdwebimage">
+      <Version>3.7.1.4</Version>
+      <Visible>False</Visible>
+    </XamarinComponentReference>
   </ItemGroup>
 </Project>
